@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="//g.alicdn.com/de/prismplayer/2.2.0/skins/default/aliplayer-min.css" />
+    <script type="text/javascript" src="//g.alicdn.com/de/prismplayer/2.2.0/aliplayer-min.js"></script>
+    <title>Document</title>
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+            background-color: black;
+        }
+
+        .large {
+            font-size: xx-large;
+        }
+        #my-video {
+            width: 200px;
+            height: 100px;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="divstring" style="width: 100%; height:100%; background-color: red;"></div>
+    <!-- 顶点着色器代码  -->
+    <script  id="cubeVertexShader" type="x-shader/x-vertex" > 
+        attribute vec4 apos;
+        void main(){
+            gl_PointSize = 20.0;
+            gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+        }
+    </script> 
+    <!-- 片段着色器代码 -->
+    <script id="cubeFragmentShader" type="x-shader/x-fragment" > 
+        void main(){
+            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+            gl_Position =vec4(apos.x-0.4,apos.y,apos.z,1);
+        }
+    </script> 
+
+    <script type="importmap">
+        {
+            "imports":{
+                "three":"./lib/three.module.js"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { CSS3DRenderer, CSS3DObject } from './lib/CSS3DRenderer.js';
+
+        // var string = '<div>' +
+        //     '<h1>This is an H1 Element.</h1>' +
+        //     '<span class="large">Hello Three.js cookbook</span>' +
+        //     '<textarea> And this is a textarea</textarea>' +
+        //    '<video id="my-video" style="width: 100%; height: 100%; object-fit: fill" controls preload="auto" autoplay loop data-setup="{}" crossorigin="anonymous" poster="video/11.png">'+'<source src="video/videoPlane.mp4"/>'+'</video>'
+        //     '</div>';
+        var string = '<div>'+'<video id="my-video" style="width: 100%; height: 100%;object-fit: fill" controls preload="auto" autoplay loop data-setup="{}" crossorigin="anonymous" poster="video/11.png">'+'<source src="video/videoPlane.mp4"/>'
+            +'</video>'+'</div>';
+
+        // global variables
+        var renderer;
+        var scene;
+        var camera;
+
+        function init(){
+            // 顶点着色器源码
+            var vShader = document.getElementById('cubeVertexShader').innerHTML;
+            // 片元着色器源码
+            var fShader = document.getElementById('cubeFragmentShader').innerHTML;
+            // 初始化着色器
+            var program = initShader(gl,vShader,fShader);
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new CSS3DRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.position.x = 0;
+            camera.position.y = 10;
+            camera.position.z = 500;
+            camera.lookAt(scene.position);
+            document.body.appendChild(renderer.domElement);
+            var cssElement = createCSS3DObject(string);
+            cssElement.position.set(0, 0, 0);
+            scene.add(cssElement);
+
+            var itemMaterial = new THREE.ShaderMaterial({
+                vertexShader:vShader, fragmentShader:fShader
+            });
+            var item = new THREE.Mesh(new THREE.CubeGeometry(100, 10, 10), itemMaterial);
+            scene.add(item);
+            render();
+        }
+
+        function createCSS3DObject(s) {
+            // var wrapper = document.createElement('div');
+            var wrapper = document.getElementById('divstring');
+            wrapper.innerHTML = s;
+            var div = wrapper.firstChild;
+            div.style.width = '200px';
+            div.style.height = '100px';
+            div.style.opacity = 1.0;
+            div.style.background = new THREE.Color(Math.random() * 0xffffff).getStyle();
+            var object = new CSS3DObject(div);
+            return object;
+        }
+        function render() {
+            // and render the scene
+            renderer.render(scene, camera);
+         }
+         init();
+    </script>
+</body>
+</html>
